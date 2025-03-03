@@ -13,27 +13,23 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setUserName(data.name || '');
-            setUserRole(data.role || '');
-            setRegistrationDate(data.registrationDate || '');
-
-            // Если роль не "admin", перенаправляем на логин
-            if (data.role !== 'admin') {
-              alert('Недостаточно прав. Вы не являетесь администратором.');
-              window.location.href = 'https://lms-theta-nine.vercel.app/login';
-              return;
-            }
+        // Ждём, пока данные авторизации загрузятся
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          console.log('Данные пользователя:', data); // Для отладки
+          setUserName(data.name || '');
+          setUserRole(data.role || '');
+          setRegistrationDate(data.registrationDate || '');
+          if (data.role === 'admin') {
+            // Всё в порядке, рендерим админку
           } else {
-            console.log('Документ пользователя не найден в Firestore');
+            alert('Недостаточно прав. Вы не являетесь администратором.');
             window.location.href = 'https://lms-theta-nine.vercel.app/login';
             return;
           }
-        } catch (error) {
-          console.error('Ошибка при загрузке данных пользователя:', error);
+        } else {
+          console.log('Документ пользователя не найден');
           window.location.href = 'https://lms-theta-nine.vercel.app/login';
           return;
         }
