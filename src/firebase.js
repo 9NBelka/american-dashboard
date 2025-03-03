@@ -1,7 +1,7 @@
 // firebase.js
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth, setPersistence, browserLocalPersistence, getIdToken } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDDNQg46t_eyi5vaaGf97kQPHI0qz2D8j4',
@@ -13,30 +13,26 @@ const firebaseConfig = {
   measurementId: 'G-B1HF4BS8KP',
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+try {
+  const app = initializeApp(firebaseConfig);
+  console.log('Firebase инициализирован успешно:', app);
 
-// Настраиваем персистентность сессии
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log('Персистентность сессии настроена на локальное хранилище');
-  })
-  .catch((error) => {
-    console.error('Ошибка настройки персистентности:', error);
-  });
+  const auth = getAuth(app);
+  console.log('Firebase Authentication инициализирован:', auth);
 
-// Экспортируем функцию для получения ID токена
-export const getAuthToken = async () => {
-  const user = auth.currentUser;
-  console.log('Текущий пользователь в getAuthToken:', user);
-  if (user) {
-    const token = await getIdToken(user, true); // true для принудительного обновления токена
-    console.log('Получен токен:', token);
-    return token;
-  }
-  console.log('Токен не получен, пользователь не авторизован');
-  return null;
-};
+  const db = getFirestore(app);
 
-export { auth, db };
+  // Настраиваем персистентность сессии
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => {
+      console.log('Персистентность сессии настроена на локальное хранилище');
+    })
+    .catch((error) => {
+      console.error('Ошибка настройки персистентности:', error);
+    });
+
+  export { auth, db };
+} catch (error) {
+  console.error('Ошибка инициализации Firebase:', error);
+  throw new Error('Firebase не инициализирован корректно: ' + error.message);
+}

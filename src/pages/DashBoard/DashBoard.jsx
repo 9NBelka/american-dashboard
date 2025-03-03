@@ -1,10 +1,27 @@
-import { useState } from 'react'; // Убрали useEffect, так как проверка роли теперь в App.jsx
+import { useState, useEffect } from 'react'; // Добавили useEffect для проверки пропсов
 import { db, auth } from '../../firebase.js';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 export default function DashBoard({ userName, userRole, registrationDate, handleLogout }) {
   const [errorMessage, setErrorMessage] = useState(''); // Состояние для ошибок формы
+  const [isLoading, setIsLoading] = useState(true); // Состояние загрузки для проверки пропсов
+
+  // Проверка пропсов при монтировании
+  useEffect(() => {
+    console.log('Роль в DashBoard:', userRole); // Отладочный лог
+    if (!userRole || userRole !== 'admin') {
+      console.error('Недостаточно прав или роль отсутствует:', userRole);
+      alert('Недостаточно прав. Вы не являетесь администратором.');
+      window.location.href = 'https://lms-theta-nine.vercel.app/login'; // Перенаправляем на логин, если роль не "admin"
+    } else {
+      setIsLoading(false); // Роль "admin" подтверждена, продолжаем загрузку
+    }
+  }, [userRole]); // Зависимость от userRole
+
+  if (isLoading) {
+    return <div>Загрузка...</div>; // Пока пропсы не проверены, показываем загрузку
+  }
 
   // Начальные значения формы
   const initialValues = {
