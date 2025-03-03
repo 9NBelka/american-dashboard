@@ -25,7 +25,7 @@ export default function App() {
             // Всё в порядке, рендерим админку
           } else {
             alert('Недостаточно прав. Вы не являетесь администратором.');
-            window.location.href = 'https://lms-theta-nine.vercel.app/login';
+            window.location.href = 'https://lms-theta-nine.vercel.app/signUp';
             return;
           }
         } else {
