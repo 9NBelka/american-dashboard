@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import DashBoard from './pages/DashBoard/DashBoard';
-import { auth, db } from './firebase';
+import { auth, db, getAuthToken } from './firebase'; // Импортируем getAuthToken
 import { doc, getDoc } from 'firebase/firestore';
 import { Route, Routes } from 'react-router-dom';
 
@@ -12,22 +12,29 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true); // Состояние загрузки авторизации
   const [error, setError] = useState(null); // Состояние для ошибок
 
-  // Новый useEffect для обработки токена из URL
+  // Обработка токена из URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
 
     if (token) {
-      auth
-        .signInWithCustomToken(token)
-        .then(() => {
-          console.log('Сессия восстановлена через токен');
-        })
-        .catch((error) => {
-          console.error('Ошибка восстановления сессии:', error);
-        });
+      // Убедимся, что auth корректно инициализирован
+      if (typeof auth.signInWithCustomToken === 'function') {
+        auth
+          .signInWithCustomToken(token)
+          .then(() => {
+            console.log('Сессия восстановлена через токен');
+          })
+          .catch((error) => {
+            console.error('Ошибка восстановления сессии:', error);
+            setError('Ошибка восстановления сессии: ' + error.message);
+          });
+      } else {
+        console.error('auth.signInWithCustomToken не найден. Проверь версию Firebase.');
+        setError('Ошибка: Firebase Authentication не инициализирован корректно.');
+      }
     }
-  }, [auth]); // Зависимость от auth, чтобы перерендерить, если auth изменится
+  }, [auth]); // Зависимость от auth
 
   useEffect(() => {
     let unsubscribe;
