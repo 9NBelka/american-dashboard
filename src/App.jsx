@@ -12,6 +12,23 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true); // Состояние загрузки авторизации
   const [error, setError] = useState(null); // Состояние для ошибок
 
+  // Новый useEffect для обработки токена из URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      auth
+        .signInWithCustomToken(token)
+        .then(() => {
+          console.log('Сессия восстановлена через токен');
+        })
+        .catch((error) => {
+          console.error('Ошибка восстановления сессии:', error);
+        });
+    }
+  }, [auth]); // Зависимость от auth, чтобы перерендерить, если auth изменится
+
   useEffect(() => {
     let unsubscribe;
     const checkAuthAndRole = async () => {
