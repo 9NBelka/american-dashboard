@@ -26,13 +26,16 @@ setPersistence(auth, browserLocalPersistence)
     console.error('Ошибка настройки персистентности:', error);
   });
 
-// Экспортируем функцию для получения ID токена (для передачи между доменами)
+// Экспортируем функцию для получения ID токена
 export const getAuthToken = async () => {
   const user = auth.currentUser;
+  console.log('Текущий пользователь в getAuthToken:', user);
   if (user) {
     const token = await getIdToken(user, true); // true для принудительного обновления токена
+    console.log('Получен токен:', token);
     return token;
   }
+  console.log('Токен не получен, пользователь не авторизован');
   return null;
 };
 
