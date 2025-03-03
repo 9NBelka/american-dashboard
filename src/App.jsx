@@ -9,32 +9,39 @@ export default function App() {
   const [userRole, setUserRole] = useState('');
   const [registrationDate, setRegistrationDate] = useState('');
   const [isLoading, setIsLoading] = useState(true); // Состояние загрузки
+  const [authLoading, setAuthLoading] = useState(true); // Состояние загрузки авторизации
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      setAuthLoading(false); // Завершаем загрузку авторизации
       if (user) {
-        // Ждём, пока данные авторизации загрузятся
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          console.log('Данные пользователя:', data); // Для отладки
-          setUserName(data.name || '');
-          setUserRole(data.role || '');
-          setRegistrationDate(data.registrationDate || '');
-          if (data.role === 'admin') {
-            // Всё в порядке, рендерим админку
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            console.log('Данные пользователя:', data); // Для отладки
+            setUserName(data.name || '');
+            setUserRole(data.role || '');
+            setRegistrationDate(data.registrationDate || '');
+            if (data.role === 'admin') {
+              // Всё в порядке, рендерим админку
+            } else {
+              alert('Недостаточно прав. Вы не являетесь администратором.');
+              window.location.href = 'https://lms-theta-nine.vercel.app/login'; // Перенаправляем на логин, а не на signUp
+              return;
+            }
           } else {
-            alert('Недостаточно прав. Вы не являетесь администратором.');
-            window.location.href = 'https://lms-theta-nine.vercel.app/signUp';
+            console.log('Документ пользователя не найден');
+            window.location.href = 'https://lms-theta-nine.vercel.app/login';
             return;
           }
-        } else {
-          console.log('Документ пользователя не найден');
+        } catch (error) {
+          console.error('Ошибка при загрузке данных пользователя:', error);
           window.location.href = 'https://lms-theta-nine.vercel.app/login';
           return;
         }
       } else {
-        window.location.href = 'https://lms-theta-nine.vercel.app/signUp';
+        window.location.href = 'https://lms-theta-nine.vercel.app/login'; // Перенаправляем на логин, а не на signUp
       }
       setIsLoading(false);
     });
@@ -47,8 +54,8 @@ export default function App() {
     window.location.href = 'https://lms-theta-nine.vercel.app/login';
   };
 
-  if (isLoading) {
-    return <div>Загрузка...</div>;
+  if (authLoading || isLoading) {
+    return <div>Загрузка...</div>; // Пока авторизация или данные загружаются, показываем загрузку
   }
 
   return (
