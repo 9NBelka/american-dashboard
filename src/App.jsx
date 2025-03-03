@@ -43,7 +43,7 @@ export default function App() {
                   alert('Недостаточно прав. Вы не являетесь администратором.');
                   setTimeout(() => {
                     window.location.href = 'https://lms-theta-nine.vercel.app/login';
-                  }, 5000); // Увеличили задержку до 5 секунд для отладки
+                  }, 10000); // Увеличили задержку до 10 секунд для отладки
                   return;
                 }
               } else {
@@ -51,7 +51,7 @@ export default function App() {
                 alert('Пользователь не найден в базе данных.');
                 setTimeout(() => {
                   window.location.href = 'https://lms-theta-nine.vercel.app/login';
-                }, 5000); // Увеличили задержку до 5 секунд для отладки
+                }, 10000); // Увеличили задержку до 10 секунд для отладки
                 return;
               }
             } catch (docError) {
@@ -59,13 +59,13 @@ export default function App() {
               setError('Ошибка при загрузке данных: ' + docError.message);
               setTimeout(() => {
                 window.location.href = 'https://lms-theta-nine.vercel.app/login';
-              }, 5000); // Увеличили задержку до 5 секунд для отладки
+              }, 10000); // Увеличили задержку до 10 секунд для отладки
               return;
             }
           } else {
             // Пользователь не авторизован или сессия восстанавливается
             console.log('Пользователь не авторизован, пытаемся дождаться восстановления сессии...');
-            // Ждём немного, чтобы дать Firebase восстановить сессию
+            // Ждём больше времени, чтобы дать Firebase восстановить сессию
             setTimeout(() => {
               const currentUser = auth.currentUser;
               if (currentUser) {
@@ -76,9 +76,9 @@ export default function App() {
                 console.log('Сессия не восстановлена, перенаправляем на логин');
                 setTimeout(() => {
                   window.location.href = 'https://lms-theta-nine.vercel.app/login';
-                }, 2000); // Задержка 2 секунды для отладки
+                }, 5000); // Задержка 5 секунд для отладки
               }
-            }, 2000); // Ждём 2 секунды перед повторной проверкой
+            }, 5000); // Увеличили до 5 секунд перед повторной проверкой
           }
           setAuthLoading(false);
           setIsLoading(false);
@@ -88,7 +88,7 @@ export default function App() {
         setError('Произошла ошибка авторизации: ' + error.message);
         setTimeout(() => {
           window.location.href = 'https://lms-theta-nine.vercel.app/login';
-        }, 5000); // Задержка 5 секунд для отладки
+        }, 10000); // Задержка 10 секунд для отладки
       }
     };
 
