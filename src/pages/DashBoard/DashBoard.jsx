@@ -1,41 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react'; // Убрали useEffect, так как проверка роли теперь в App.jsx
 import { db, auth } from '../../firebase.js';
-import { collection, addDoc, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 export default function DashBoard({ userName, userRole, registrationDate, handleLogout }) {
   const [errorMessage, setErrorMessage] = useState(''); // Состояние для ошибок формы
-  const [isLoading, setIsLoading] = useState(true); // Состояние загрузки для проверки авторизации
-
-  // Проверка роли при монтировании компонента
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) {
-      window.location.href = 'https://lms-theta-nine.vercel.app/login'; // Перенаправляем на внешнюю страницу логина
-      return;
-    }
-
-    const checkAdminRole = async () => {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
-          alert('Недостаточно прав. Вы не являетесь администратором.');
-          window.location.href = 'https://lms-theta-nine.vercel.app/login'; // Перенаправляем на логин, если роль не "admin"
-        }
-      } catch (error) {
-        console.error('Ошибка при проверке роли:', error);
-        window.location.href = 'https://lms-theta-nine.vercel.app/login';
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [db]);
-
-  if (isLoading) {
-    return <div>Загрузка...</div>;
-  }
 
   // Начальные значения формы
   const initialValues = {
@@ -49,8 +18,7 @@ export default function DashBoard({ userName, userRole, registrationDate, handle
   // Обработчик отправки формы
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
-      const user = auth.currentUser;
-      if (!user || userRole !== 'admin') {
+      if (userRole !== 'admin') {
         setErrorMessage('У вас нет прав для этой операции');
         setSubmitting(false);
         return;
