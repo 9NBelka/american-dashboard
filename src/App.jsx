@@ -19,10 +19,13 @@ export default function App() {
         // Устанавливаем подписку на изменения состояния авторизации
         unsubscribe = auth.onAuthStateChanged(async (user) => {
           setAuthLoading(true); // Начинаем загрузку авторизации
-          console.log('Состояние авторизации:', user ? 'Авторизован' : 'Не авторизован');
+          console.log(
+            'Состояние авторизации (raw):',
+            user ? 'Авторизован' : 'Не авторизован, но возможно восстанавливается',
+          );
 
           if (user) {
-            // Ждём, пока данные авторизации загрузятся
+            // Проверяем данные пользователя из Firestore
             try {
               const userDoc = await getDoc(doc(db, 'users', user.uid));
               if (userDoc.exists()) {
@@ -40,7 +43,7 @@ export default function App() {
                   alert('Недостаточно прав. Вы не являетесь администратором.');
                   setTimeout(() => {
                     window.location.href = 'https://lms-theta-nine.vercel.app/login';
-                  }, 2000); // Задержка в 2 секунды для отладки
+                  }, 5000); // Увеличили задержку до 5 секунд для отладки
                   return;
                 }
               } else {
@@ -48,7 +51,7 @@ export default function App() {
                 alert('Пользователь не найден в базе данных.');
                 setTimeout(() => {
                   window.location.href = 'https://lms-theta-nine.vercel.app/login';
-                }, 2000); // Задержка в 2 секунды для отладки
+                }, 5000); // Увеличили задержку до 5 секунд для отладки
                 return;
               }
             } catch (docError) {
@@ -56,25 +59,65 @@ export default function App() {
               setError('Ошибка при загрузке данных: ' + docError.message);
               setTimeout(() => {
                 window.location.href = 'https://lms-theta-nine.vercel.app/login';
-              }, 2000); // Задержка в 2 секунды для отладки
+              }, 5000); // Увеличили задержку до 5 секунд для отладки
               return;
             }
           } else {
-            console.log('Пользователь не авторизован, перенаправляем на логин');
+            // Пользователь не авторизован или сессия восстанавливается
+            console.log('Пользователь не авторизован, пытаемся дождаться восстановления сессии...');
+            // Ждём немного, чтобы дать Firebase восстановить сессию
             setTimeout(() => {
-              window.location.href = 'https://lms-theta-nine.vercel.app/login';
-            }, 2000); // Задержка в 2 секунды для отладки
+              const currentUser = auth.currentUser;
+              if (currentUser) {
+                console.log('Сессия восстановлена, пользователь:', currentUser);
+                // Повторяем проверку с восстановленным пользователем
+                checkAuthAndRoleWithUser(currentUser);
+              } else {
+                console.log('Сессия не восстановлена, перенаправляем на логин');
+                setTimeout(() => {
+                  window.location.href = 'https://lms-theta-nine.vercel.app/login';
+                }, 2000); // Задержка 2 секунды для отладки
+              }
+            }, 2000); // Ждём 2 секунды перед повторной проверкой
           }
+          setAuthLoading(false);
+          setIsLoading(false);
         });
       } catch (error) {
         console.error('Ошибка в процессе авторизации:', error);
         setError('Произошла ошибка авторизации: ' + error.message);
         setTimeout(() => {
           window.location.href = 'https://lms-theta-nine.vercel.app/login';
-        }, 2000); // Задержка в 2 секунды для отладки
-      } finally {
-        setAuthLoading(false);
-        setIsLoading(false);
+        }, 5000); // Задержка 5 секунд для отладки
+      }
+    };
+
+    const checkAuthAndRoleWithUser = async (user) => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          console.log('Повторные данные пользователя из Firestore:', data);
+          setUserName(data.name || '');
+          setUserRole(data.role || '');
+          setRegistrationDate(data.registrationDate || '');
+
+          if (data.role === 'admin') {
+            console.log('Роль "admin" подтверждена после восстановления');
+          } else {
+            console.log('Роль не "admin" после восстановления, перенаправляем на логин');
+            alert('Недостаточно прав. Вы не являетесь администратором.');
+            window.location.href = 'https://lms-theta-nine.vercel.app/login';
+            return;
+          }
+        } else {
+          console.log('Документ пользователя не найден после восстановления');
+          window.location.href = 'https://lms-theta-nine.vercel.app/login';
+          return;
+        }
+      } catch (error) {
+        console.error('Ошибка при повторной проверке данных:', error);
+        window.location.href = 'https://lms-theta-nine.vercel.app/login';
       }
     };
 
