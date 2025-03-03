@@ -34,7 +34,7 @@ export default function App() {
           return;
         }
       } else {
-        window.location.href = 'https://lms-theta-nine.vercel.app/login';
+        window.location.href = 'https://lms-theta-nine.vercel.app/signUp';
       }
       setIsLoading(false);
     });
